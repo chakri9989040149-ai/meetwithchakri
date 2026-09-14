@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="brandGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7C3AED" />
+      <stop offset="50%" stop-color="#8B5CF6" />
+      <stop offset="100%" stop-color="#38BDF8" />
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#6366F1" />
+      <stop offset="100%" stop-color="#A855F7" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#7C3AED" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+  
+  <!-- Outer rounded square -->
+  <rect x="4" y="4" width="56" height="56" rx="16" fill="url(#brandGrad)" filter="url(#shadow)" />
+  
+  <!-- Modern Video Camera / Infinity Creation Symbol -->
+  <path d="M20 23C20 20.7909 21.7909 19 24 19H36C38.2091 19 40 20.7909 40 23V41C40 43.2091 38.2091 45 36 45H24C21.7909 45 20 43.2091 20 41V23Z" fill="white" fill-opacity="0.95"/>
+  <path d="M40 28L47.5 22.875C48.5 22.1875 49.5 22.875 49.5 24V40C49.5 41.125 48.5 41.8125 47.5 41.125L40 36V28Z" fill="white" fill-opacity="0.95"/>
+  
+  <!-- Creative Sparkle Center Node -->
+  <circle cx="30" cy="32" r="4.5" fill="url(#accentGrad)"/>
+  <circle cx="30" cy="32" r="2" fill="white"/>
+</svg>
