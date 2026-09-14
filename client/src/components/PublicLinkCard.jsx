@@ -19,7 +19,14 @@ export function getEffectiveMeetingUrl(roomId) {
 
   // 3. Current window origin with base path (e.g. /meetwithchakri)
   const basePath = (import.meta.env.BASE_URL || '/').replace(/\/+$/, '');
-  return `${window.location.origin}${basePath}/room/${roomId}`;
+  let fullUrl = `${window.location.origin}${basePath}/room/${roomId}`;
+
+  // If a custom or tunnel backend is configured, preserve it in the link so friends connect to the exact same signaling server
+  const activeBackend = localStorage.getItem('chakri_backend_url');
+  if (activeBackend && !activeBackend.includes('localhost') && !activeBackend.includes('127.0.0.1')) {
+    fullUrl += `?backend=${encodeURIComponent(activeBackend)}`;
+  }
+  return fullUrl;
 }
 
 export default function PublicLinkCard({ roomId, className = '' }) {

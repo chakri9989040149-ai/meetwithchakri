@@ -1,67 +1,49 @@
-name: Deploy Client to GitHub Pages
+name: Deploy Meet App to GitHub Pages
 
 on:
   push:
-    branches: [ main ]
+    branches: ['main']
   workflow_dispatch:
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages and gh-pages branch
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
 
-# Allow only one concurrent deployment, skipping intermediate runs
 concurrency:
   group: 'pages'
   cancel-in-progress: true
 
 jobs:
-  build-and-deploy:
+  deploy:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
-          cache-dependency-path: client/package-lock.json
 
-      - name: Install client dependencies
-        working-directory: client
-        run: npm install
-
-      - name: Build client
-        working-directory: client
-        env:
-          VITE_BACKEND_URL: ${{ secrets.VITE_BACKEND_URL }}
+      - name: Install and Build Client
         run: |
+          cd client
+          npm install
           npm run build
-          cp dist/index.html dist/404.html
 
-      - name: Deploy to gh-pages branch
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./client/dist
-
+        # Set up GitHub Pages
       - name: Setup Pages
         uses: actions/configure-pages@v5
-        continue-on-error: true
 
-      - name: Upload Pages artifact
+      - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
-        continue-on-error: true
         with:
-          path: ./client/dist
+          path: './client/dist'
 
-      - name: Deploy to GitHub Pages environment
+      - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-        continue-on-error: true

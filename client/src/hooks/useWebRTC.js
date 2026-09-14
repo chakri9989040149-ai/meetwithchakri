@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { getSocket } from '../services/socket';
+import { getSocket, getSocketUrl } from '../services/socket';
 
 // Default public Google STUN servers for NAT traversal
 const DEFAULT_ICE_SERVERS = [
@@ -42,11 +42,7 @@ export function useWebRTC(roomId, currentUser, initialMediaSettings = { audio: t
     }
 
     // 2. Fetch backend dynamic ICE servers if available
-    const backendBase =
-      import.meta.env.VITE_BACKEND_URL ||
-      import.meta.env.VITE_API_URL ||
-      import.meta.env.VITE_SERVER_URL ||
-      '';
+    const backendBase = getSocketUrl();
     const apiUrl = backendBase
       ? `${backendBase.replace(/\/+$/, '').replace(/\/api\/?$/, '')}/api`
       : '/api';

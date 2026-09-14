@@ -1,13 +1,34 @@
 import { io } from 'socket.io-client';
 
-// Determine the backend socket URL based on environment variables or current window origin
-const getSocketUrl = () => {
-  // 1. Primary backend URL configured via VITE_BACKEND_URL
+// Determine the backend socket URL based on environment variables, URL params, or defaults
+export const getSocketUrl = () => {
+  // 1. URL parameter (?backend=https://... or ?server=https://...)
+  if (typeof window !== 'undefined') {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const queryBackend = params.get('backend') || params.get('server');
+      if (queryBackend) {
+        const clean = decodeURIComponent(queryBackend).replace(/\/api\/?$/, '').replace(/\/+$/, '');
+        localStorage.setItem('chakri_backend_url', clean);
+        return clean;
+      }
+    } catch (e) {}
+  }
+
+  // 2. Primary backend URL configured via VITE_BACKEND_URL
   if (import.meta.env.VITE_BACKEND_URL) {
     return import.meta.env.VITE_BACKEND_URL.replace(/\/api\/?$/, '').replace(/\/+$/, '');
   }
 
-  // 2. Secondary / fallback environment variables
+  // 3. Stored user backend URL in localStorage
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('chakri_backend_url');
+    if (saved) {
+      return saved.replace(/\/api\/?$/, '').replace(/\/+$/, '');
+    }
+  }
+
+  // 4. Secondary environment variables
   if (import.meta.env.VITE_SOCKET_URL) {
     return import.meta.env.VITE_SOCKET_URL.replace(/\/+$/, '');
   }
@@ -18,17 +39,18 @@ const getSocketUrl = () => {
     return import.meta.env.VITE_API_URL.replace(/\/api\/?$/, '').replace(/\/+$/, '');
   }
   
-  // 3. Browser environment fallback (localhost/LAN detection vs origin)
+  // 5. Browser environment fallback
   if (typeof window !== 'undefined') {
     const { hostname, port, protocol } = window.location;
     // If running in development (localhost, 127.0.0.1, or port 5173/3000), default to localhost:5000
     if (hostname === 'localhost' || hostname === '127.0.0.1' || port === '5173' || port === '3000') {
       return `${protocol}//${hostname}:5000`;
     }
-    return window.location.origin;
+    // When hosted on GitHub Pages, use the live Cloudflare signaling tunnel
+    return 'https://recommended-motor-timing-served.trycloudflare.com';
   }
 
-  // 4. Fallback for SSR or non-browser execution
+  // 6. Fallback for SSR or non-browser execution
   return 'http://localhost:5000';
 };
 
