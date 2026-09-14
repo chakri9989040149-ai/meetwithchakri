@@ -1,0 +1,194 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #0B0F19;
+    color: #F8FAFC;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+/* ========================================================
+   THEME STYLES (5 Modern Themes)
+   ======================================================== */
+/* Theme 1: Midnight Black + Electric Purple + Blue (Default) */
+.theme-midnight {
+  --bg-primary: #070913;
+  --bg-secondary: #0F172A;
+  --bg-surface: rgba(15, 23, 42, 0.85);
+  --border-color: rgba(51, 65, 85, 0.7);
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --accent-primary: #8B5CF6;
+  --accent-gradient: linear-gradient(135deg, #7C3AED 0%, #3B82F6 100%);
+}
+
+/* Theme 2: Dark Navy + Cyan + Neon Blue (Cyberpunk) */
+.theme-cyberpunk {
+  --bg-primary: #040817;
+  --bg-secondary: #0A1435;
+  --bg-surface: rgba(10, 20, 53, 0.88);
+  --border-color: rgba(6, 182, 212, 0.35);
+  --text-primary: #ECFEFF;
+  --text-secondary: #A5F3FC;
+  --accent-primary: #06B6D4;
+  --accent-gradient: linear-gradient(135deg, #06B6D4 0%, #3B82F6 100%);
+}
+
+/* Theme 3: Dark Glassmorphism + Violet */
+.theme-violet {
+  --bg-primary: #0E0720;
+  --bg-secondary: #170C36;
+  --bg-surface: rgba(23, 12, 54, 0.82);
+  --border-color: rgba(168, 85, 247, 0.3);
+  --text-primary: #FAF5FF;
+  --text-secondary: #E9D5FF;
+  --accent-primary: #A855F7;
+  --accent-gradient: linear-gradient(135deg, #A855F7 0%, #EC4899 100%);
+}
+
+/* Theme 4: Light Porcelain + Indigo + Purple */
+.theme-light {
+  --bg-primary: #FAF8FF;
+  --bg-secondary: #FFFFFF;
+  --bg-surface: rgba(255, 255, 255, 0.92);
+  --border-color: rgba(226, 232, 240, 0.9);
+  --text-primary: #0F172A;
+  --text-secondary: #64748B;
+  --accent-primary: #7C3AED;
+  --accent-gradient: linear-gradient(135deg, #7C3AED 0%, #0EA5E9 100%);
+}
+
+/* Theme 5: Aurora Borealis Theme */
+.theme-aurora {
+  --bg-primary: #04131A;
+  --bg-secondary: #08242A;
+  --bg-surface: rgba(8, 36, 42, 0.85);
+  --border-color: rgba(16, 185, 129, 0.3);
+  --text-primary: #ECFDF5;
+  --text-secondary: #A7F3D0;
+  --accent-primary: #10B981;
+  --accent-gradient: linear-gradient(135deg, #10B981 0%, #6366F1 100%);
+}
+
+/* Custom modern scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* Glassmorphism utilities */
+.glass-panel {
+  background: var(--bg-surface, rgba(15, 23, 42, 0.82));
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+}
+
+.glass-pill {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* Mirrored video for self preview */
+.video-mirrored {
+  transform: scaleX(-1);
+}
+
+/* Active speaker pulse animation */
+@keyframes speakerGlow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(139, 92, 246, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(139, 92, 246, 0);
+  }
+}
+
+.speaking-ring {
+  animation: speakerGlow 1.8s infinite;
+  border-color: #8B5CF6 !important;
+}
+
+/* Floating reaction animation */
+@keyframes floatReaction {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(0.8) rotate(0deg);
+  }
+  50% {
+    opacity: 0.95;
+    transform: translateY(-90px) scale(1.35) rotate(12deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-180px) scale(1.6) rotate(-12deg);
+  }
+}
+
+.animate-floating-reaction {
+  animation: floatReaction 2.4s ease-out forwards;
+}
+
+/* ========================================================
+   CAMERA VIDEO FILTERS (10 Hardware-Accelerated CSS Filters)
+   ======================================================== */
+.filter-normal {
+  filter: none !important;
+}
+
+.filter-bw {
+  filter: grayscale(100%) contrast(115%) !important;
+}
+
+.filter-vintage {
+  filter: sepia(60%) contrast(95%) brightness(105%) !important;
+}
+
+.filter-warm {
+  filter: sepia(25%) saturate(140%) brightness(102%) !important;
+}
+
+.filter-cool {
+  filter: hue-rotate(180deg) saturate(115%) contrast(105%) !important;
+}
+
+.filter-cinematic {
+  filter: contrast(130%) saturate(110%) brightness(95%) !important;
+}
+
+.filter-bright {
+  filter: brightness(120%) contrast(105%) saturate(108%) !important;
+}
+
+.filter-glow {
+  filter: blur(0.4px) brightness(112%) contrast(96%) !important;
+}
+
+.filter-neon {
+  filter: contrast(150%) hue-rotate(90deg) saturate(180%) !important;
+}
+
+.filter-cyber {
+  filter: invert(12%) saturate(210%) hue-rotate(240deg) !important;
+}

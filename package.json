@@ -1,0 +1,27 @@
+{
+  "name": "chakris-meet",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Chakri's Meet — Advanced Browser Video Meeting Platform. Discuss and Create the New Things.",
+  "scripts": {
+    "install:all": "npm install && cd server && npm install && cd ../client && npm install",
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd client && npm run dev",
+    "dev": "concurrently -n \"SERVER,CLIENT\" -c \"blue,magenta\" \"npm run dev:server\" \"npm run dev:client\"",
+    "build:client": "cd client && npm run build",
+    "start": "cd server && npm start"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  },
+  "keywords": [
+    "webrtc",
+    "video-conferencing",
+    "react",
+    "socket.io",
+    "real-time",
+    "collaboration"
+  ],
+  "author": "Chakri",
+  "license": "MIT"
+}
