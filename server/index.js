@@ -15,31 +15,47 @@ const server = http.createServer(app);
 const PORT = process.env.PORT || 5000;
 const CLIENT_URL = process.env.CLIENT_URL || process.env.CORS_ORIGIN || 'http://localhost:5173';
 
+// Determine if an incoming origin is allowed
+const isOriginAllowed = (origin) => {
+  // Allow requests with no origin (like mobile apps, curl, server-to-server)
+  if (!origin) return true;
+
+  // Always allow in non-production environments
+  if (process.env.NODE_ENV !== 'production') return true;
+
+  // Configured allowed origins list
+  const configuredOrigins = [
+    CLIENT_URL,
+    process.env.CORS_ORIGIN,
+    ...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',').map(s => s.trim()) : []),
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:3000'
+  ].filter(Boolean);
+
+  if (configuredOrigins.some(allowed => origin === allowed || origin.startsWith(allowed))) {
+    return true;
+  }
+
+  // Public deployment hosts (GitHub Pages, Vercel, Netlify, Cloudflare tunnels)
+  if (
+    origin.endsWith('.github.io') ||
+    origin.endsWith('.vercel.app') ||
+    origin.endsWith('.netlify.app') ||
+    origin.endsWith('.trycloudflare.com')
+  ) {
+    return true;
+  }
+
+  // Permissive fallback so signaling works across public networks
+  return true;
+};
+
 // CORS configuration for both dev and production
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps, curl, server-to-server)
-    if (!origin) return callback(null, true);
-
-    // In development or if explicitly allowed via CLIENT_URL / CORS_ORIGIN
-    if (process.env.NODE_ENV !== 'production') {
-      return callback(null, true);
-    }
-
-    const allowedOrigins = [
-      CLIENT_URL,
-      process.env.CORS_ORIGIN,
-      'http://localhost:5173',
-      'http://localhost:3000'
-    ].filter(Boolean);
-
-    // Also match any vercel preview domains if configured
-    if (allowedOrigins.some(o => origin.startsWith(o)) || origin.endsWith('.vercel.app')) {
-      return callback(null, true);
-    }
-
-    // Default allow with origin reflection for WebRTC flexibility
-    return callback(null, true);
+    callback(null, isOriginAllowed(origin) ? true : false);
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true
@@ -50,8 +66,11 @@ app.use(express.json());
 // Setup Socket.io
 const io = new Server(server, {
   cors: {
-    origin: '*',
-    methods: ['GET', 'POST']
+    origin: (origin, callback) => {
+      callback(null, isOriginAllowed(origin) ? true : false);
+    },
+    methods: ['GET', 'POST'],
+    credentials: true
   },
   pingTimeout: 60000,
   pingInterval: 25000

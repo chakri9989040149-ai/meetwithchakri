@@ -2,29 +2,33 @@ import { io } from 'socket.io-client';
 
 // Determine the backend socket URL based on environment variables or current window origin
 const getSocketUrl = () => {
-  // 1. Explicit production/staging socket URL
+  // 1. Primary backend URL configured via VITE_BACKEND_URL
+  if (import.meta.env.VITE_BACKEND_URL) {
+    return import.meta.env.VITE_BACKEND_URL.replace(/\/api\/?$/, '').replace(/\/+$/, '');
+  }
+
+  // 2. Secondary / fallback environment variables
   if (import.meta.env.VITE_SOCKET_URL) {
-    return import.meta.env.VITE_SOCKET_URL;
+    return import.meta.env.VITE_SOCKET_URL.replace(/\/+$/, '');
   }
-  // 2. Alternative server URL env variable
   if (import.meta.env.VITE_SERVER_URL) {
-    return import.meta.env.VITE_SERVER_URL;
+    return import.meta.env.VITE_SERVER_URL.replace(/\/+$/, '');
   }
-  // 3. API URL env variable
   if (import.meta.env.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL.replace(/\/api\/?$/, '');
+    return import.meta.env.VITE_API_URL.replace(/\/api\/?$/, '').replace(/\/+$/, '');
   }
   
-  // 4. In development: if on localhost or LAN IP, default to port 5000 if not proxied
+  // 3. Browser environment fallback (localhost/LAN detection vs origin)
   if (typeof window !== 'undefined') {
-    const { hostname, port } = window.location;
-    // If client is on 5173 in dev without proxy, connect to port 5000 on the same host/IP
-    if (port === '5173') {
-      return `${window.location.protocol}//${hostname}:5000`;
+    const { hostname, port, protocol } = window.location;
+    // If running in development (localhost, 127.0.0.1, or port 5173/3000), default to localhost:5000
+    if (hostname === 'localhost' || hostname === '127.0.0.1' || port === '5173' || port === '3000') {
+      return `${protocol}//${hostname}:5000`;
     }
     return window.location.origin;
   }
 
+  // 4. Fallback for SSR or non-browser execution
   return 'http://localhost:5000';
 };
 

@@ -17,8 +17,9 @@ export function getEffectiveMeetingUrl(roomId) {
     return `${base}/room/${roomId}`;
   }
 
-  // 3. Current window origin
-  return `${window.location.origin}/room/${roomId}`;
+  // 3. Current window origin with base path (e.g. /meetwithchakri)
+  const basePath = (import.meta.env.BASE_URL || '/').replace(/\/+$/, '');
+  return `${window.location.origin}${basePath}/room/${roomId}`;
 }
 
 export default function PublicLinkCard({ roomId, className = '' }) {

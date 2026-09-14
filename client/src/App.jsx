@@ -10,7 +10,7 @@ import NotFound from './pages/NotFound';
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <Routes>
         {/* 1. Landing Homepage */}
         <Route path="/" element={<Landing />} />

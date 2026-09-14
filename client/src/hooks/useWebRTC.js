@@ -42,7 +42,15 @@ export function useWebRTC(roomId, currentUser, initialMediaSettings = { audio: t
     }
 
     // 2. Fetch backend dynamic ICE servers if available
-    const apiUrl = import.meta.env.VITE_API_URL || '/api';
+    const backendBase =
+      import.meta.env.VITE_BACKEND_URL ||
+      import.meta.env.VITE_API_URL ||
+      import.meta.env.VITE_SERVER_URL ||
+      '';
+    const apiUrl = backendBase
+      ? `${backendBase.replace(/\/+$/, '').replace(/\/api\/?$/, '')}/api`
+      : '/api';
+
     fetch(`${apiUrl}/ice-servers`)
       .then((res) => res.json())
       .then((data) => {
