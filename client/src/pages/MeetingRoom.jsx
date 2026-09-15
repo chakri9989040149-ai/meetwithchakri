@@ -16,6 +16,7 @@ import LivePolls from '../components/create-together/LivePolls';
 import CollabNotes from '../components/create-together/CollabNotes';
 import MeetingAgenda from '../components/create-together/MeetingAgenda';
 import Logo from '../components/Logo';
+import { useTheme } from '../context/ThemeContext';
 import { useWebRTC } from '../hooks/useWebRTC';
 import { useMeetingRecording } from '../hooks/useMeetingRecording';
 import { getSocket } from '../services/socket';
@@ -39,22 +40,56 @@ import {
 } from 'lucide-react';
 
 export default function MeetingRoom() {
-  const { roomId } = useParams();
+  const { roomId: rawParamRoomId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Robust multi-tier dynamic roomId extraction:
+  // 1. useParams() route param (/room/:roomId)
+  // 2. Query parameters (?roomId=, ?room=, ?code=, ?id=)
+  // 3. window.location.pathname regex fallback
+  const roomId = React.useMemo(() => {
+    // 1. Route param
+    if (rawParamRoomId && rawParamRoomId !== ':roomId' && rawParamRoomId.trim()) {
+      return rawParamRoomId.trim().replace(/^.*\/room\//, '').split('?')[0].split('#')[0];
+    }
+    // 2. Query search params
+    const search = location.search || (typeof window !== 'undefined' ? window.location.search : '');
+    if (search) {
+      try {
+        const sp = new URLSearchParams(search);
+        const queryId = sp.get('roomId') || sp.get('room') || sp.get('code') || sp.get('id');
+        if (queryId && queryId.trim()) {
+          return queryId.trim().replace(/^.*\/room\//, '').split('?')[0].split('#')[0];
+        }
+      } catch (e) {}
+    }
+    // 3. Pathname regex fallback
+    if (typeof window !== 'undefined') {
+      const match = window.location.pathname.match(/\/room\/([^/?#]+)/i);
+      if (match && match[1] && match[1] !== ':roomId') {
+        return match[1].trim();
+      }
+    }
+    return '';
+  }, [rawParamRoomId, location.search]);
+
   // Meeting Stages: 'intro' -> 'lobby' -> 'active'
-  const [stage, setStage] = useState('intro');
+  // Skip 7s intro screen by default for direct links, pre-join lobby, or instant launches
+  const [stage, setStage] = useState(() => {
+    const search = location.search || (typeof window !== 'undefined' ? window.location.search : '');
+    if (location.state?.directJoin || search.includes('direct=true')) {
+      return 'active';
+    }
+    if (search.includes('intro=true')) {
+      return 'intro';
+    }
+    // Default directly to pre-join lobby for instant device check & join button
+    return 'lobby';
+  });
 
-  // Theme State
-  const [currentTheme, setCurrentTheme] = useState(
-    localStorage.getItem('chakri_theme') || 'theme-midnight'
-  );
-
-  const handleThemeChange = (newTheme) => {
-    setCurrentTheme(newTheme);
-    localStorage.setItem('chakri_theme', newTheme);
-  };
+  // Theme State from Context
+  const { theme: currentTheme, setTheme: handleThemeChange } = useTheme();
 
   // Camera Filter State
   const [selectedFilter, setSelectedFilter] = useState('filter-normal');
@@ -316,7 +351,10 @@ export default function MeetingRoom() {
   // ========================================================
   if (errorMessage) {
     return (
-      <div className={`min-h-screen ${currentTheme} bg-slate-950 text-white flex items-center justify-center p-4`}>
+      <div
+        data-theme={currentTheme}
+        className={`min-h-screen ${currentTheme} bg-slate-950 text-white flex items-center justify-center p-4`}
+      >
         <div className="max-w-md w-full bg-slate-900 border border-slate-800 p-8 rounded-3xl text-center space-y-5 shadow-2xl animate-in zoom-in-95">
           <div className="w-14 h-14 rounded-2xl bg-rose-500/20 text-rose-400 mx-auto flex items-center justify-center">
             <AlertCircle className="w-7 h-7" />
@@ -389,7 +427,10 @@ export default function MeetingRoom() {
   };
 
   return (
-    <div className={`h-screen w-screen flex flex-col ${currentTheme} bg-slate-950 text-white overflow-hidden select-none font-sans relative`}>
+    <div
+      data-theme={currentTheme}
+      className={`h-screen w-screen flex flex-col ${currentTheme} bg-slate-950 text-white overflow-hidden select-none font-sans relative`}
+    >
       {/* Top Header Bar */}
       <header className="h-16 px-4 sm:px-6 bg-slate-900/90 backdrop-blur-xl border-b border-white/10 flex items-center justify-between z-20 flex-shrink-0">
         <div className="flex items-center gap-3">

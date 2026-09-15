@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Palette, Check, Sparkles } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
 
 export const THEMES = [
   {
@@ -34,8 +35,27 @@ export const THEMES = [
   }
 ];
 
-export default function ThemeSwitcher({ currentTheme, onThemeChange, className = '' }) {
+export default function ThemeSwitcher({ currentTheme: propCurrentTheme, onThemeChange, onSelectTheme, className = '' }) {
   const [isOpen, setIsOpen] = useState(false);
+  const themeContext = useTheme();
+
+  // Determine active theme (prop takes precedence if supplied, fallback to Context, fallback to 'theme-midnight')
+  const activeTheme = propCurrentTheme || themeContext?.theme || 'theme-midnight';
+
+  const handleSelect = (themeId) => {
+    if (typeof onSelectTheme === 'function') {
+      onSelectTheme(themeId);
+    }
+    if (typeof onThemeChange === 'function') {
+      onThemeChange(themeId);
+    }
+    if (themeContext?.setTheme) {
+      themeContext.setTheme(themeId);
+    }
+    setIsOpen(false);
+  };
+
+  const currentThemeObj = THEMES.find((t) => t.id === activeTheme) || THEMES[0];
 
   return (
     <div className={`relative ${className}`}>
@@ -43,10 +63,10 @@ export default function ThemeSwitcher({ currentTheme, onThemeChange, className =
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/10 hover:bg-white/15 backdrop-blur-md border border-white/15 text-slate-200 transition-all shadow-sm hover:scale-105 active:scale-95"
-        title="Switch Visual Theme"
+        title={`Theme: ${currentThemeObj.name} — Click to switch`}
       >
         <Palette className="w-3.5 h-3.5 text-brand-400" />
-        <span className="hidden sm:inline">Theme</span>
+        <span className="hidden sm:inline">{currentThemeObj.name}</span>
       </button>
 
       {isOpen && (
@@ -61,19 +81,16 @@ export default function ThemeSwitcher({ currentTheme, onThemeChange, className =
             </div>
 
             {THEMES.map((theme) => {
-              const isActive = currentTheme === theme.id;
+              const isActive = activeTheme === theme.id;
               return (
                 <button
                   key={theme.id}
                   type="button"
-                  onClick={() => {
-                    onThemeChange(theme.id);
-                    setIsOpen(false);
-                  }}
+                  onClick={() => handleSelect(theme.id)}
                   className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-all ${
                     isActive
-                      ? 'bg-brand-600/30 text-white border border-brand-500/50 font-semibold'
-                      : 'hover:bg-slate-800 text-slate-300'
+                      ? 'bg-brand-600/30 text-white border border-brand-500/50 font-semibold shadow-sm'
+                      : 'hover:bg-slate-800/80 text-slate-300'
                   }`}
                 >
                   <div className="flex items-center gap-2.5">

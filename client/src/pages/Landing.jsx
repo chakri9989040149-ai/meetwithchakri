@@ -35,6 +35,7 @@ import {
 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Logo from '../components/Logo';
+import { useTheme } from '../context/ThemeContext';
 import { getSocketUrl } from '../services/socket';
 import { getEffectiveMeetingUrl } from '../components/PublicLinkCard';
 
@@ -52,9 +53,7 @@ function generateRoomCode() {
 export default function Landing() {
   const [meetingTab, setMeetingTab] = useState('instant'); // 'instant' | 'scheduled'
   const [roomCode, setRoomCode] = useState('');
-  const [currentTheme, setCurrentTheme] = useState(
-    localStorage.getItem('chakri_theme') || 'theme-midnight'
-  );
+  const { theme: currentTheme, setTheme: handleThemeChange } = useTheme();
 
   // Scheduled Meeting State
   const [schedTitle, setSchedTitle] = useState("Chakri's Innovation Sync");
@@ -82,11 +81,6 @@ export default function Landing() {
 
   const navigate = useNavigate();
 
-  const handleThemeChange = (newTheme) => {
-    setCurrentTheme(newTheme);
-    localStorage.setItem('chakri_theme', newTheme);
-  };
-
   const getApiUrl = () => {
     const backendBase = getSocketUrl();
     return backendBase
@@ -110,7 +104,8 @@ export default function Landing() {
       state: {
         isHost: true,
         hostName,
-        title: "Chakri's Instant Meeting"
+        title: "Chakri's Instant Meeting",
+        directJoin: true
       }
     });
   };
@@ -118,11 +113,11 @@ export default function Landing() {
   const handleJoinMeeting = (e) => {
     e.preventDefault();
     if (!roomCode.trim()) return;
-    const cleanCode = roomCode.trim().replace(/^.*\/room\//, '');
+    const cleanCode = roomCode.trim().replace(/^.*\/room\//, '').split('?')[0].split('#')[0];
     navigate(`/room/${cleanCode}`);
   };
 
-  // 2. Fetch scheduled meetings on load
+  // 2. Fetch scheduled meetings on load and check for incoming invite links
   const fetchScheduledMeetings = async () => {
     try {
       const res = await fetch(`${getApiUrl()}/meetings-scheduled`);
@@ -140,8 +135,21 @@ export default function Landing() {
   };
 
   useEffect(() => {
+    // Detect incoming room invite parameter (?room=, ?roomId=, ?code=) on homepage
+    if (typeof window !== 'undefined') {
+      try {
+        const sp = new URLSearchParams(window.location.search);
+        const incomingRoom = sp.get('roomId') || sp.get('room') || sp.get('code') || sp.get('id');
+        if (incomingRoom && incomingRoom.trim()) {
+          const clean = incomingRoom.trim().replace(/^.*\/room\//, '').split('?')[0].split('#')[0];
+          navigate(`/room/${clean}${window.location.search}`);
+          return;
+        }
+      } catch (e) {}
+    }
+
     fetchScheduledMeetings();
-  }, []);
+  }, [navigate]);
 
   // 3. Handle Schedule Meeting Submit & Push Reminder
   const handleScheduleMeeting = async (e) => {
@@ -265,7 +273,10 @@ export default function Landing() {
   };
 
   return (
-    <div className={`min-h-screen ${currentTheme} bg-slate-950 text-white flex flex-col selection:bg-indigo-500 selection:text-white relative overflow-x-hidden font-sans`}>
+    <div
+      data-theme={currentTheme}
+      className={`min-h-screen ${currentTheme} bg-slate-950 text-white flex flex-col selection:bg-indigo-500 selection:text-white relative overflow-x-hidden font-sans`}
+    >
       {/* Navigation */}
       <Navbar
         onInstantMeetingClick={handleLaunchInstantMeeting}

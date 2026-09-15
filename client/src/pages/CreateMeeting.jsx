@@ -34,6 +34,17 @@ export default function CreateMeeting() {
   };
 
   useEffect(() => {
+    // Check for incoming room query parameter first
+    try {
+      const sp = new URLSearchParams(window.location.search);
+      const queryRoom = sp.get('roomId') || sp.get('room') || sp.get('code') || sp.get('id');
+      if (queryRoom && queryRoom.trim()) {
+        const clean = queryRoom.trim().replace(/^.*\/room\//, '').split('?')[0].split('#')[0];
+        setRoomId(clean);
+        return;
+      }
+    } catch (e) {}
+
     setRoomId(generateRoomCode());
   }, []);
 
@@ -68,7 +79,8 @@ export default function CreateMeeting() {
       state: {
         isHost: true,
         hostName: finalHostName,
-        title: finalTitle
+        title: finalTitle,
+        directJoin: true
       }
     });
   };

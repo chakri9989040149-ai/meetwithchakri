@@ -23,8 +23,32 @@ export default function VideoTile({
   const { isSpeaking } = useAudioMeter(stream, !isMuted);
 
   useEffect(() => {
-    if (videoRef.current && stream) {
-      videoRef.current.srcObject = stream;
+    const videoEl = videoRef.current;
+    if (!videoEl) return;
+
+    if (stream) {
+      videoEl.srcObject = stream;
+      videoEl.play().catch((err) => {
+        // Autoplay may need user gesture for non-muted audio
+        console.warn('Video playback notice:', err?.message || err);
+      });
+
+      const handleTracksChanged = () => {
+        if (videoRef.current && stream) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.play().catch(() => {});
+        }
+      };
+
+      stream.addEventListener('addtrack', handleTracksChanged);
+      stream.addEventListener('removetrack', handleTracksChanged);
+
+      return () => {
+        stream.removeEventListener('addtrack', handleTracksChanged);
+        stream.removeEventListener('removetrack', handleTracksChanged);
+      };
+    } else {
+      videoEl.srcObject = null;
     }
   }, [stream]);
 

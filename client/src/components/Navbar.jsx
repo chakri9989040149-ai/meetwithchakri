@@ -3,9 +3,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import Logo from './Logo';
 import ThemeSwitcher from './ThemeSwitcher';
 import AuthModal from './AuthModal';
+import { useTheme } from '../context/ThemeContext';
 import { Video, Plus, Menu, X, Sparkles, User, LogOut, ShieldCheck, Mail } from 'lucide-react';
 
-export default function Navbar({ onInstantMeetingClick, currentTheme, onSelectTheme }) {
+export default function Navbar({ onInstantMeetingClick, currentTheme: propCurrentTheme, onSelectTheme: propOnSelectTheme }) {
+  const themeContext = useTheme();
+  const currentTheme = propCurrentTheme || themeContext.theme;
+  const onSelectTheme = propOnSelectTheme || themeContext.setTheme;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);

@@ -50,8 +50,8 @@ export const setupMeetingSocket = (io) => {
           return socket.emit('join-error', { message: 'Invalid room identifier.' });
         }
 
-        // Check current occupancy in this room
-        const roomSockets = io.sockets.adapter.rooms.get(`room:${roomId}`);
+        // Check current occupancy in this room across channel formats
+        const roomSockets = io.sockets.adapter.rooms.get(roomId) || io.sockets.adapter.rooms.get(`room:${roomId}`);
         const currentOccupancy = roomSockets ? roomSockets.size : 0;
         const isHostAttempt = Boolean(user?.isHost);
 
@@ -93,24 +93,31 @@ export const setupMeetingSocket = (io) => {
           meeting.hostName = currentUser.name;
         }
 
-        // Add socket to Socket.io room channel
+        // Add socket to BOTH Socket.io room channels for complete compatibility
+        socket.join(roomId);
         socket.join(`room:${roomId}`);
         inMemoryStore.participants.set(socket.id, { ...currentUser, roomId });
 
-        // Collect all active peers currently in this room
+        // Collect all active peers currently in this room across channels
         const otherUsers = [];
-        const currentRoomSockets = io.sockets.adapter.rooms.get(`room:${roomId}`);
+        const seenSocketIds = new Set([socket.id]);
+        const rSockets1 = io.sockets.adapter.rooms.get(roomId);
+        const rSockets2 = io.sockets.adapter.rooms.get(`room:${roomId}`);
 
-        if (currentRoomSockets) {
-          for (const sId of currentRoomSockets) {
-            if (sId !== socket.id) {
+        const scanSockets = (socketSet) => {
+          if (!socketSet) return;
+          for (const sId of socketSet) {
+            if (!seenSocketIds.has(sId)) {
+              seenSocketIds.add(sId);
               const peerInfo = inMemoryStore.participants.get(sId);
               if (peerInfo) {
                 otherUsers.push(peerInfo);
               }
             }
           }
-        }
+        };
+        scanSockets(rSockets1);
+        scanSockets(rSockets2);
 
         // Send existing participants list to newcomer
         socket.emit('all-users', {
@@ -120,10 +127,13 @@ export const setupMeetingSocket = (io) => {
           isLocked: meeting.isLocked
         });
 
-        // Broadcast to existing room peers that a new user joined
-        socket.to(`room:${roomId}`).emit('user-joined', {
-          user: currentUser
-        });
+        // Broadcast user-connected and user-joined to existing room peers
+        const peerJoinedPayload = {
+          user: currentUser,
+          socketId: socket.id
+        };
+        socket.to(roomId).emit('user-connected', peerJoinedPayload);
+        socket.to(roomId).emit('user-joined', peerJoinedPayload);
 
         // Send existing chat history
         const messages = await dbService.getMessages(roomId);
@@ -165,26 +175,48 @@ export const setupMeetingSocket = (io) => {
 
     // ========================================================
     // 2. WEBRTC SIGNALING (OFFER / ANSWER / ICE CANDIDATE)
+    // Strictly routed to target peer within the active room
     // ========================================================
-    socket.on('offer', ({ target, caller, sdp }) => {
+    socket.on('offer', ({ target, caller, sdp, roomId }) => {
+      const room = roomId || currentRoomId;
+      const targetInfo = inMemoryStore.participants.get(target);
+      if (room && targetInfo && targetInfo.roomId !== room) {
+        console.warn(`[Signaling] Blocked cross-room offer from ${socket.id} to ${target}`);
+        return;
+      }
       io.to(target).emit('offer', {
         caller: socket.id,
         callerInfo: currentUser,
-        sdp
+        sdp,
+        roomId: room
       });
     });
 
-    socket.on('answer', ({ target, caller, sdp }) => {
+    socket.on('answer', ({ target, caller, sdp, roomId }) => {
+      const room = roomId || currentRoomId;
+      const targetInfo = inMemoryStore.participants.get(target);
+      if (room && targetInfo && targetInfo.roomId !== room) {
+        console.warn(`[Signaling] Blocked cross-room answer from ${socket.id} to ${target}`);
+        return;
+      }
       io.to(target).emit('answer', {
         caller: socket.id,
-        sdp
+        sdp,
+        roomId: room
       });
     });
 
-    socket.on('ice-candidate', ({ target, candidate }) => {
+    socket.on('ice-candidate', ({ target, candidate, roomId }) => {
+      const room = roomId || currentRoomId;
+      const targetInfo = inMemoryStore.participants.get(target);
+      if (room && targetInfo && targetInfo.roomId !== room) {
+        console.warn(`[Signaling] Blocked cross-room candidate from ${socket.id} to ${target}`);
+        return;
+      }
       io.to(target).emit('ice-candidate', {
         sender: socket.id,
-        candidate
+        candidate,
+        roomId: room
       });
     });
 
@@ -357,12 +389,15 @@ export const setupMeetingSocket = (io) => {
       if (!currentRoomId) return;
 
       inMemoryStore.participants.delete(socket.id);
+      socket.leave(currentRoomId);
       socket.leave(`room:${currentRoomId}`);
 
-      socket.to(`room:${currentRoomId}`).emit('user-left', {
+      const leavePayload = {
         socketId: socket.id,
         userName: currentUser?.name
-      });
+      };
+      socket.to(currentRoomId).emit('user-left', leavePayload);
+      socket.to(`room:${currentRoomId}`).emit('user-left', leavePayload);
 
       console.log(`👋 User "${currentUser?.name || socket.id}" left room ${currentRoomId}`);
       currentRoomId = null;

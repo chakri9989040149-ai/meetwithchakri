@@ -2,7 +2,7 @@ import { io } from 'socket.io-client';
 
 // Determine the backend socket URL based on environment variables, URL params, or defaults
 export const getSocketUrl = () => {
-  // 1. URL parameter (?backend=https://... or ?server=https://...)
+  // 1. Explicit URL parameter (?backend=https://... or ?server=https://...)
   if (typeof window !== 'undefined') {
     try {
       const params = new URLSearchParams(window.location.search);
@@ -15,20 +15,28 @@ export const getSocketUrl = () => {
     } catch (e) {}
   }
 
-  // 2. Primary backend URL configured via VITE_BACKEND_URL
+  // 2. If running locally (localhost, 127.0.0.1, or client dev port 5173/3000), always connect to local signaling server
+  if (typeof window !== 'undefined') {
+    const { hostname, port, protocol } = window.location;
+    if (hostname === 'localhost' || hostname === '127.0.0.1' || port === '5173' || port === '3000') {
+      return `${protocol}//${hostname}:5000`;
+    }
+  }
+
+  // 3. Primary backend URL configured via VITE_BACKEND_URL
   if (import.meta.env.VITE_BACKEND_URL) {
     return import.meta.env.VITE_BACKEND_URL.replace(/\/api\/?$/, '').replace(/\/+$/, '');
   }
 
-  // 3. Stored user backend URL in localStorage
+  // 4. Stored user backend URL in localStorage (ignore dead/ephemeral trycloudflare tunnels)
   if (typeof window !== 'undefined') {
     const saved = localStorage.getItem('chakri_backend_url');
-    if (saved) {
+    if (saved && !saved.includes('trycloudflare.com')) {
       return saved.replace(/\/api\/?$/, '').replace(/\/+$/, '');
     }
   }
 
-  // 4. Secondary environment variables
+  // 5. Secondary environment variables
   if (import.meta.env.VITE_SOCKET_URL) {
     return import.meta.env.VITE_SOCKET_URL.replace(/\/+$/, '');
   }
@@ -38,19 +46,8 @@ export const getSocketUrl = () => {
   if (import.meta.env.VITE_API_URL) {
     return import.meta.env.VITE_API_URL.replace(/\/api\/?$/, '').replace(/\/+$/, '');
   }
-  
-  // 5. Browser environment fallback
-  if (typeof window !== 'undefined') {
-    const { hostname, port, protocol } = window.location;
-    // If running in development (localhost, 127.0.0.1, or port 5173/3000), default to localhost:5000
-    if (hostname === 'localhost' || hostname === '127.0.0.1' || port === '5173' || port === '3000') {
-      return `${protocol}//${hostname}:5000`;
-    }
-    // When hosted on GitHub Pages, use the live Cloudflare signaling tunnel
-    return 'https://recommended-motor-timing-served.trycloudflare.com';
-  }
 
-  // 6. Fallback for SSR or non-browser execution
+  // 6. Default fallback
   return 'http://localhost:5000';
 };
 

@@ -14,6 +14,9 @@
    THEME STYLES (5 Modern Themes)
    ======================================================== */
 /* Theme 1: Midnight Black + Electric Purple + Blue (Default) */
+:root,
+[data-theme="theme-midnight"],
+[data-theme="midnight"],
 .theme-midnight {
   --bg-primary: #070913;
   --bg-secondary: #0F172A;
@@ -23,9 +26,13 @@
   --text-secondary: #94A3B8;
   --accent-primary: #8B5CF6;
   --accent-gradient: linear-gradient(135deg, #7C3AED 0%, #3B82F6 100%);
+  --ambient-1: rgba(124, 58, 237, 0.28);
+  --ambient-2: rgba(59, 130, 246, 0.22);
 }
 
 /* Theme 2: Dark Navy + Cyan + Neon Blue (Cyberpunk) */
+[data-theme="theme-cyberpunk"],
+[data-theme="cyberpunk"],
 .theme-cyberpunk {
   --bg-primary: #040817;
   --bg-secondary: #0A1435;
@@ -35,9 +42,13 @@
   --text-secondary: #A5F3FC;
   --accent-primary: #06B6D4;
   --accent-gradient: linear-gradient(135deg, #06B6D4 0%, #3B82F6 100%);
+  --ambient-1: rgba(6, 182, 212, 0.32);
+  --ambient-2: rgba(56, 189, 248, 0.25);
 }
 
 /* Theme 3: Dark Glassmorphism + Violet */
+[data-theme="theme-violet"],
+[data-theme="violet"],
 .theme-violet {
   --bg-primary: #0E0720;
   --bg-secondary: #170C36;
@@ -47,21 +58,29 @@
   --text-secondary: #E9D5FF;
   --accent-primary: #A855F7;
   --accent-gradient: linear-gradient(135deg, #A855F7 0%, #EC4899 100%);
+  --ambient-1: rgba(168, 85, 247, 0.32);
+  --ambient-2: rgba(236, 72, 153, 0.25);
 }
 
 /* Theme 4: Light Porcelain + Indigo + Purple */
+[data-theme="theme-light"],
+[data-theme="light"],
 .theme-light {
-  --bg-primary: #FAF8FF;
+  --bg-primary: #F8FAFC;
   --bg-secondary: #FFFFFF;
-  --bg-surface: rgba(255, 255, 255, 0.92);
-  --border-color: rgba(226, 232, 240, 0.9);
+  --bg-surface: rgba(255, 255, 255, 0.95);
+  --border-color: rgba(203, 213, 225, 0.85);
   --text-primary: #0F172A;
-  --text-secondary: #64748B;
+  --text-secondary: #475569;
   --accent-primary: #7C3AED;
   --accent-gradient: linear-gradient(135deg, #7C3AED 0%, #0EA5E9 100%);
+  --ambient-1: rgba(124, 58, 237, 0.15);
+  --ambient-2: rgba(14, 165, 233, 0.12);
 }
 
 /* Theme 5: Aurora Borealis Theme */
+[data-theme="theme-aurora"],
+[data-theme="aurora"],
 .theme-aurora {
   --bg-primary: #04131A;
   --bg-secondary: #08242A;
@@ -71,6 +90,151 @@
   --text-secondary: #A7F3D0;
   --accent-primary: #10B981;
   --accent-gradient: linear-gradient(135deg, #10B981 0%, #6366F1 100%);
+  --ambient-1: rgba(16, 185, 129, 0.3);
+  --ambient-2: rgba(99, 102, 241, 0.22);
+}
+
+/* Base Body Application */
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* Cyberpunk Active Theme Overrides */
+[data-theme="theme-cyberpunk"],
+.theme-cyberpunk {
+  background-color: #040817 !important;
+  color: #ECFEFF !important;
+}
+[data-theme="theme-cyberpunk"] .bg-slate-950,
+.theme-cyberpunk .bg-slate-950 {
+  background-color: #040817 !important;
+}
+[data-theme="theme-cyberpunk"] .bg-slate-900,
+[data-theme="theme-cyberpunk"] .bg-slate-900\/90,
+[data-theme="theme-cyberpunk"] .bg-slate-900\/95,
+[data-theme="theme-cyberpunk"] .bg-slate-900\/60,
+.theme-cyberpunk .bg-slate-900,
+.theme-cyberpunk .bg-slate-900\/90,
+.theme-cyberpunk .bg-slate-900\/95,
+.theme-cyberpunk .bg-slate-900\/60 {
+  background-color: rgba(10, 20, 53, 0.92) !important;
+  border-color: rgba(6, 182, 212, 0.3) !important;
+}
+[data-theme="theme-cyberpunk"] .border-white\/10,
+[data-theme="theme-cyberpunk"] .border-white\/15,
+.theme-cyberpunk .border-white\/10,
+.theme-cyberpunk .border-white\/15 {
+  border-color: rgba(6, 182, 212, 0.25) !important;
+}
+
+/* Violet Glass Active Theme Overrides */
+[data-theme="theme-violet"],
+.theme-violet {
+  background-color: #0E0720 !important;
+  color: #FAF5FF !important;
+}
+[data-theme="theme-violet"] .bg-slate-950,
+.theme-violet .bg-slate-950 {
+  background-color: #0E0720 !important;
+}
+[data-theme="theme-violet"] .bg-slate-900,
+[data-theme="theme-violet"] .bg-slate-900\/90,
+[data-theme="theme-violet"] .bg-slate-900\/95,
+[data-theme="theme-violet"] .bg-slate-900\/60,
+.theme-violet .bg-slate-900,
+.theme-violet .bg-slate-900\/90,
+.theme-violet .bg-slate-900\/95,
+.theme-violet .bg-slate-900\/60 {
+  background-color: rgba(23, 12, 54, 0.9) !important;
+  border-color: rgba(168, 85, 247, 0.3) !important;
+}
+[data-theme="theme-violet"] .border-white\/10,
+[data-theme="theme-violet"] .border-white\/15,
+.theme-violet .border-white\/10,
+.theme-violet .border-white\/15 {
+  border-color: rgba(168, 85, 247, 0.25) !important;
+}
+
+/* Aurora Borealis Active Theme Overrides */
+[data-theme="theme-aurora"],
+.theme-aurora {
+  background-color: #04131A !important;
+  color: #ECFDF5 !important;
+}
+[data-theme="theme-aurora"] .bg-slate-950,
+.theme-aurora .bg-slate-950 {
+  background-color: #04131A !important;
+}
+[data-theme="theme-aurora"] .bg-slate-900,
+[data-theme="theme-aurora"] .bg-slate-900\/90,
+[data-theme="theme-aurora"] .bg-slate-900\/95,
+[data-theme="theme-aurora"] .bg-slate-900\/60,
+.theme-aurora .bg-slate-900,
+.theme-aurora .bg-slate-900\/90,
+.theme-aurora .bg-slate-900\/95,
+.theme-aurora .bg-slate-900\/60 {
+  background-color: rgba(8, 36, 42, 0.92) !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+}
+[data-theme="theme-aurora"] .border-white\/10,
+[data-theme="theme-aurora"] .border-white\/15,
+.theme-aurora .border-white\/10,
+.theme-aurora .border-white\/15 {
+  border-color: rgba(16, 185, 129, 0.25) !important;
+}
+
+/* Light Elegance Active Theme Overrides */
+[data-theme="theme-light"],
+.theme-light {
+  background-color: #F8FAFC !important;
+  color: #0F172A !important;
+}
+[data-theme="theme-light"] .bg-slate-950,
+.theme-light .bg-slate-950 {
+  background-color: #F8FAFC !important;
+}
+[data-theme="theme-light"] .bg-slate-900,
+[data-theme="theme-light"] .bg-slate-900\/90,
+[data-theme="theme-light"] .bg-slate-900\/95,
+[data-theme="theme-light"] .bg-slate-900\/60,
+.theme-light .bg-slate-900,
+.theme-light .bg-slate-900\/90,
+.theme-light .bg-slate-900\/95,
+.theme-light .bg-slate-900\/60 {
+  background-color: #FFFFFF !important;
+  border-color: rgba(226, 232, 240, 0.9) !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(0, 0, 0, 0.03) !important;
+}
+[data-theme="theme-light"] .text-white,
+.theme-light .text-white {
+  color: #0F172A !important;
+}
+[data-theme="theme-light"] .text-slate-200,
+[data-theme="theme-light"] .text-slate-300,
+[data-theme="theme-light"] .text-slate-400,
+.theme-light .text-slate-200,
+.theme-light .text-slate-300,
+.theme-light .text-slate-400 {
+  color: #475569 !important;
+}
+[data-theme="theme-light"] .border-white\/10,
+[data-theme="theme-light"] .border-white\/15,
+.theme-light .border-white\/10,
+.theme-light .border-white\/15 {
+  border-color: rgba(203, 213, 225, 0.75) !important;
+}
+[data-theme="theme-light"] header,
+.theme-light header {
+  background-color: rgba(255, 255, 255, 0.92) !important;
+  border-color: rgba(226, 232, 240, 0.9) !important;
+}
+[data-theme="theme-light"] footer,
+.theme-light footer {
+  background-color: #F1F5F9 !important;
+  border-color: rgba(226, 232, 240, 0.9) !important;
+  color: #334155 !important;
 }
 
 /* Custom modern scrollbar */
