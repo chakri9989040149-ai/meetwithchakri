@@ -192,3 +192,153 @@
 .filter-cyber {
   filter: invert(12%) saturate(210%) hue-rotate(240deg) !important;
 }
+
+/* ========================================================
+   RESTORED ORIGINAL BUTTON THEME & UTILITIES
+   ======================================================== */
+.btn-amber-glow,
+.btn-indigo-glow {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #db2777 100%) !important;
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+  border: 1px solid rgba(168, 85, 247, 0.5) !important;
+  box-shadow: 0 0 22px -1px rgba(99, 102, 241, 0.45), 0 0 8px 0 rgba(168, 85, 247, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.3) !important;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.btn-amber-glow::before,
+.btn-indigo-glow::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -120%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  transition: left 0.6s ease;
+  pointer-events: none;
+}
+
+.btn-amber-glow:hover,
+.btn-indigo-glow:hover {
+  box-shadow: 0 0 32px 3px rgba(124, 58, 237, 0.7), 0 0 16px 2px rgba(219, 39, 119, 0.6), inset 0 1px 2px rgba(255, 255, 255, 0.5) !important;
+  border-color: rgba(196, 181, 253, 0.9) !important;
+  transform: translateY(-1.5px) scale(1.02) !important;
+}
+
+.btn-amber-glow:hover::before,
+.btn-indigo-glow:hover::before {
+  left: 120%;
+}
+
+.btn-amber-glow:active,
+.btn-indigo-glow:active {
+  transform: translateY(0.5px) scale(0.98) !important;
+  box-shadow: 0 0 16px 0 rgba(99, 102, 241, 0.6) !important;
+}
+
+.btn-amber-secondary,
+.btn-indigo-secondary {
+  background: rgba(99, 102, 241, 0.12) !important;
+  color: #C7D2FE !important;
+  font-weight: 600 !important;
+  border: 1px solid rgba(99, 102, 241, 0.4) !important;
+  backdrop-filter: blur(12px) !important;
+  transition: all 0.22s ease !important;
+}
+
+.btn-amber-secondary:hover,
+.btn-indigo-secondary:hover {
+  background: rgba(99, 102, 241, 0.24) !important;
+  border-color: rgba(168, 85, 247, 0.8) !important;
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.35) !important;
+  color: #FFFFFF !important;
+  transform: translateY(-1px) !important;
+}
+
+/* ========================================================
+   4-DIGIT OTP 3D FOLD-IN ANIMATION
+   ======================================================== */
+@keyframes otpFoldIn {
+  0% {
+    transform: perspective(500px) rotateX(-90deg) scale(0.8);
+    opacity: 0;
+  }
+  60% {
+    transform: perspective(500px) rotateX(16deg) scale(1.08);
+    opacity: 0.95;
+  }
+  100% {
+    transform: perspective(500px) rotateX(0deg) scale(1);
+    opacity: 1;
+  }
+}
+
+.otp-box-digit {
+  animation: otpFoldIn 0.36s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  transform-origin: top center;
+  display: inline-block;
+}
+
+.otp-box-active {
+  border-color: #6366F1 !important;
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.45), inset 0 0 10px rgba(99, 102, 241, 0.15) !important;
+}
+
+/* ========================================================
+   VERTICAL DOCK TABS ON RIGHT
+   ======================================================== */
+.vertical-tab-strip {
+  display: flex;
+  flex-direction: column;
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(20px);
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: -4px 0 25px rgba(0, 0, 0, 0.4);
+  z-index: 30;
+}
+
+.vertical-tab-btn {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+  letter-spacing: 0.05em;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.vertical-tab-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.vertical-tab-btn.active {
+  background: linear-gradient(to top, rgba(99, 102, 241, 0.25), rgba(168, 85, 247, 0.25));
+  border-left: 3px solid #6366F1;
+  color: #C7D2FE;
+}
+
+/* Global full-screen floating reactions */
+@keyframes fullScreenReaction {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(0.6) rotate(0deg);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-160px) scale(1.4) rotate(8deg);
+  }
+  70% {
+    opacity: 0.85;
+    transform: translateY(-380px) scale(1.6) rotate(-8deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-560px) scale(1.9) rotate(15deg);
+  }
+}
+
+.animate-fullscreen-reaction {
+  animation: fullScreenReaction 2.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+

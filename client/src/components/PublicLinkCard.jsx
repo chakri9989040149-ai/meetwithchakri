@@ -80,22 +80,47 @@ export default function PublicLinkCard({ roomId, className = '' }) {
       </div>
 
       {/* Main Copyable Link Box */}
-      <div className="flex items-center gap-2 p-2 bg-slate-100 rounded-2xl border border-slate-200 focus-within:ring-2 focus-within:ring-brand-500 transition-all">
+      <div className="flex items-center gap-2 p-2 bg-slate-900/90 rounded-2xl border border-white/15 focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/30 transition-all">
         <input
           type="text"
           readOnly
           value={effectiveUrl}
-          className="flex-1 bg-transparent px-2 text-xs font-mono text-slate-800 focus:outline-none select-all truncate"
+          className="flex-1 bg-transparent px-2 text-xs font-mono text-white focus:outline-none select-all truncate"
         />
         <button
           type="button"
           onClick={handleCopy}
-          className="flex items-center gap-1 px-3.5 py-1.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all hover:scale-105 active:scale-95 flex-shrink-0"
+          className="flex items-center gap-1.5 px-3.5 py-1.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all hover:scale-105 active:scale-95 flex-shrink-0"
           title="Copy Meeting Link"
         >
-          {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+          {copied ? <Check className="w-3.5 h-3.5 text-emerald-200" /> : <Copy className="w-3.5 h-3.5" />}
           <span>{copied ? 'Copied Link!' : 'Copy Link'}</span>
         </button>
+      </div>
+
+      {/* GitHub Pages Public Deployment Link Card */}
+      <div className="p-3 bg-indigo-500/10 border border-indigo-500/30 rounded-2xl text-xs space-y-1.5 text-indigo-200">
+        <div className="flex items-center justify-between">
+          <span className="font-bold flex items-center gap-1 text-white">
+            <Globe className="w-3.5 h-3.5 text-indigo-400" />
+            <span>Public GitHub Pages URL:</span>
+          </span>
+          <button
+            type="button"
+            onClick={() => {
+              const ghUrl = `https://chakri9989040149-ai.github.io/meetwithchakri/room/${roomId}`;
+              navigator.clipboard.writeText(ghUrl);
+              setCopied(true);
+              setTimeout(() => setCopied(false), 2000);
+            }}
+            className="text-[11px] font-bold text-indigo-300 hover:text-white underline"
+          >
+            Copy Public GitHub Link
+          </button>
+        </div>
+        <div className="font-mono text-[11px] text-slate-300 truncate select-all">
+          https://chakri9989040149-ai.github.io/meetwithchakri/room/{roomId}
+        </div>
       </div>
 
       {/* Localhost Public Warning & Helpers (only shown when running on localhost) */}

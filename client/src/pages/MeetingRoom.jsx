@@ -20,7 +20,23 @@ import { useWebRTC } from '../hooks/useWebRTC';
 import { useMeetingRecording } from '../hooks/useMeetingRecording';
 import { getSocket } from '../services/socket';
 import { getEffectiveMeetingUrl } from '../components/PublicLinkCard';
-import { Copy, Check, Clock, ShieldAlert, Sparkles, AlertCircle, Home, RefreshCw, CircleDot } from 'lucide-react';
+import {
+  Copy,
+  Check,
+  Clock,
+  ShieldAlert,
+  Sparkles,
+  AlertCircle,
+  Home,
+  RefreshCw,
+  CircleDot,
+  BookOpen,
+  MessageSquare,
+  Users,
+  X,
+  ShieldCheck,
+  HardDrive
+} from 'lucide-react';
 
 export default function MeetingRoom() {
   const { roomId } = useParams();
@@ -41,7 +57,7 @@ export default function MeetingRoom() {
   };
 
   // Camera Filter State
-  const [selectedFilter, setSelectedFilter] = useState('normal');
+  const [selectedFilter, setSelectedFilter] = useState('filter-normal');
 
   // User State
   const [userProfile, setUserProfile] = useState({
@@ -96,7 +112,7 @@ export default function MeetingRoom() {
     mediaSettings
   );
 
-  // Meeting Recording Hook
+  // Meeting Recording Hook (Stores directly to personal device storage with explicit permission)
   const recording = useMeetingRecording({
     stream: isScreenSharing && screenStream ? screenStream : localStream,
     roomId
@@ -137,13 +153,14 @@ export default function MeetingRoom() {
       setMessages(history);
     };
 
-    // Reactions
-    const handleUserReaction = ({ socketId, reaction }) => {
+    // Reactions with screen trajectory
+    const handleUserReaction = ({ socketId, reaction, userName }) => {
       const id = Date.now() + Math.random();
-      setFloatingReactions((prev) => [...prev, { id, socketId, reaction }]);
+      const xPercent = 15 + Math.random() * 70; // 15% to 85%
+      setFloatingReactions((prev) => [...prev, { id, socketId, reaction, xPercent, userName }]);
       setTimeout(() => {
         setFloatingReactions((prev) => prev.filter((r) => r.id !== id));
-      }, 2500);
+      }, 2800);
     };
 
     // Hand Raise
@@ -244,9 +261,18 @@ export default function MeetingRoom() {
     socket.emit('raise-hand', { roomId, isHandRaised: nextState });
   };
 
-  // Reactions
+  // Reactions: Emits to peers and immediately renders locally
   const handleSendReaction = (reaction) => {
     socket.emit('send-reaction', { roomId, reaction });
+    const id = Date.now() + Math.random();
+    const xPercent = 30 + Math.random() * 40;
+    setFloatingReactions((prev) => [
+      ...prev,
+      { id, socketId: socket.id, reaction, xPercent, userName: userProfile.name || 'You' }
+    ]);
+    setTimeout(() => {
+      setFloatingReactions((prev) => prev.filter((r) => r.id !== id));
+    }, 2800);
   };
 
   // Chat message send
@@ -307,7 +333,7 @@ export default function MeetingRoom() {
             </button>
             <button
               onClick={() => window.location.reload()}
-              className="flex-1 py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition-colors flex items-center justify-center gap-1.5"
+              className="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-semibold shadow-md transition-colors flex items-center justify-center gap-1.5"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               <span>Retry</span>
@@ -363,7 +389,7 @@ export default function MeetingRoom() {
   };
 
   return (
-    <div className={`h-screen w-screen flex flex-col ${currentTheme} bg-slate-950 text-white overflow-hidden select-none font-sans`}>
+    <div className={`h-screen w-screen flex flex-col ${currentTheme} bg-slate-950 text-white overflow-hidden select-none font-sans relative`}>
       {/* Top Header Bar */}
       <header className="h-16 px-4 sm:px-6 bg-slate-900/90 backdrop-blur-xl border-b border-white/10 flex items-center justify-between z-20 flex-shrink-0">
         <div className="flex items-center gap-3">
@@ -376,7 +402,7 @@ export default function MeetingRoom() {
               <button
                 type="button"
                 onClick={handleCopyLink}
-                className="hover:text-indigo-400 flex items-center gap-0.5 transition"
+                className="hover:text-amber-400 flex items-center gap-0.5 transition"
                 title="Copy Room Link"
               >
                 {copiedLink ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
@@ -396,12 +422,12 @@ export default function MeetingRoom() {
           )}
 
           <div className="flex items-center gap-2 sm:gap-3 bg-white/5 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/10">
-            <Clock className="w-3.5 h-3.5 text-indigo-400" />
+            <Clock className="w-3.5 h-3.5 text-amber-400" />
             <span className="text-xs font-mono font-bold text-white">{formatTimer(elapsedSeconds)}</span>
             <span className="h-3 w-px bg-white/10" />
             <div className="flex items-center gap-1 text-[11px] text-emerald-400 font-medium">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="hidden sm:inline">Encrypted WebRTC</span>
+              <span className="hidden sm:inline">1440p HD WebRTC</span>
             </div>
           </div>
         </div>
@@ -417,9 +443,9 @@ export default function MeetingRoom() {
           <button
             type="button"
             onClick={handleCopyLink}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 rounded-xl text-xs font-semibold text-white shadow-md shadow-indigo-500/20 transition-all active:scale-95"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 shadow-md shadow-purple-600/20 transition-all active:scale-95"
           >
-            {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-300" /> : <Copy className="w-3.5 h-3.5" />}
+            {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-200" /> : <Copy className="w-3.5 h-3.5" />}
             <span className="hidden sm:inline">{copiedLink ? 'Copied!' : 'Share Link'}</span>
           </button>
         </div>
@@ -427,9 +453,9 @@ export default function MeetingRoom() {
 
       {/* Recording Legal Notice Banner */}
       {recording.showNotice && (
-        <div className="bg-gradient-to-r from-amber-500/90 to-rose-500/90 text-white px-4 py-1.5 text-xs font-semibold text-center flex items-center justify-center gap-2 shadow-md z-30 animate-in slide-in-from-top duration-300">
+        <div className="bg-gradient-to-r from-amber-600/90 to-rose-600/90 text-white px-4 py-1.5 text-xs font-semibold text-center flex items-center justify-center gap-2 shadow-md z-30 animate-in slide-in-from-top duration-300">
           <CircleDot className="w-3.5 h-3.5 animate-pulse" />
-          <span>Recording in progress. All audio and screen activity are being saved transparently.</span>
+          <span>Recording in progress. High-definition 1440p stream is saving directly to your personal device.</span>
           <button
             onClick={() => recording.setShowNotice(false)}
             className="underline ml-2 text-[11px] opacity-80 hover:opacity-100"
@@ -439,10 +465,10 @@ export default function MeetingRoom() {
         </div>
       )}
 
-      {/* Main Video Stage & Side Panels */}
+      {/* Main Video Stage & Dedicated Right-Side Vertical Tabs Layout */}
       <div className="flex-1 flex overflow-hidden relative">
         {/* Video Grid */}
-        <main className="flex-1 p-3 sm:p-4 overflow-y-auto flex items-center justify-center">
+        <main className="flex-1 p-3 sm:p-4 overflow-y-auto flex items-center justify-center min-w-0 transition-all">
           <div className={`w-full h-full grid gap-3 sm:gap-4 items-center justify-center ${getGridColsClass()}`}>
             {/* Screen Share Tile */}
             {isScreenSharing && screenStream && (
@@ -489,92 +515,259 @@ export default function MeetingRoom() {
           </div>
         </main>
 
+        {/* Active Side Panel Docked on the Right */}
+        {activePanel && (
+          <aside className="w-80 sm:w-96 border-l border-white/10 bg-slate-900/95 backdrop-blur-2xl flex flex-col z-30 shadow-2xl animate-in slide-in-from-right duration-200 relative flex-shrink-0">
+            {/* Active Panel Header with Collapse button */}
+            <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between bg-slate-950/70">
+              <div className="flex items-center gap-2">
+                {activePanel === 'chakri-ai' && <Sparkles className="w-4 h-4 text-amber-400" />}
+                {(activePanel === 'notes' || activePanel === 'chakri-notes') && <BookOpen className="w-4 h-4 text-amber-400" />}
+                {activePanel === 'chat' && <MessageSquare className="w-4 h-4 text-amber-400" />}
+                {activePanel === 'participants' && <Users className="w-4 h-4 text-amber-400" />}
+                <span className="text-xs font-bold uppercase tracking-wider text-white">
+                  {activePanel === 'chakri-ai' ? 'Chakri AI Assistant' :
+                   activePanel === 'chakri-notes' ? 'Chakri Notes (NotebookLM)' :
+                   activePanel === 'notes' ? 'Meeting Notes' :
+                   activePanel === 'chat' ? 'Live Chat' :
+                   activePanel === 'participants' ? 'Participants' :
+                   activePanel}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActivePanel(null)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+                title="Collapse Panel"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Side Panel Content */}
+            <div className="flex-1 overflow-y-auto">
+              {activePanel === 'chakri-ai' && (
+                <ChakriAI
+                  isOpen={true}
+                  onClose={() => setActivePanel(null)}
+                  meetingTitle={meetingTitle}
+                  roomId={roomId}
+                />
+              )}
+
+              {activePanel === 'notes' && (
+                <CollabNotes roomId={roomId} onClose={() => setActivePanel(null)} />
+              )}
+
+              {activePanel === 'chakri-notes' && (
+                <ChakriNotes
+                  isOpen={true}
+                  onClose={() => setActivePanel(null)}
+                  meetingTitle={meetingTitle}
+                />
+              )}
+
+              {activePanel === 'agent-hub' && (
+                <AIAgentHub
+                  isOpen={true}
+                  onClose={() => setActivePanel(null)}
+                />
+              )}
+
+              {activePanel === 'chat' && (
+                <ChatPanel
+                  messages={messages}
+                  currentUserId={socket.id}
+                  onSendMessage={handleSendMessage}
+                  onClose={() => setActivePanel(null)}
+                />
+              )}
+
+              {activePanel === 'participants' && (
+                <ParticipantsPanel
+                  localUser={userProfile}
+                  remotePeers={remotePeers}
+                  isLocalMuted={isAudioMuted}
+                  isLocalVideoOff={isVideoOff}
+                  isLocalHandRaised={isLocalHandRaised}
+                  isHost={userProfile.isHost}
+                  isMeetingLocked={isMeetingLocked}
+                  onMuteParticipant={handleMuteParticipant}
+                  onMuteAll={handleMuteAll}
+                  onKickParticipant={handleKickParticipant}
+                  onToggleLockMeeting={handleToggleLockMeeting}
+                  onClose={() => setActivePanel(null)}
+                />
+              )}
+
+              {activePanel === 'whiteboard' && (
+                <SmartBoard roomId={roomId} onClose={() => setActivePanel(null)} />
+              )}
+
+              {activePanel === 'polls' && (
+                <LivePolls
+                  roomId={roomId}
+                  isHost={userProfile.isHost}
+                  onClose={() => setActivePanel(null)}
+                />
+              )}
+
+              {activePanel === 'agenda' && (
+                <MeetingAgenda onClose={() => setActivePanel(null)} />
+              )}
+            </div>
+          </aside>
+        )}
+
+        {/* Dedicated Separate Vertical Tabs on the Right Side of the Screen */}
+        <nav
+          aria-label="Meeting Right Vertical Tabs"
+          className="w-14 sm:w-16 vertical-tab-strip flex flex-col items-center py-4 gap-2.5 border-l border-white/10 flex-shrink-0 select-none z-30"
+        >
+          {/* Vertical Tab 1: Chakri AI */}
+          <button
+            type="button"
+            onClick={() => togglePanel('chakri-ai')}
+            className={`relative w-11 h-12 rounded-2xl flex flex-col items-center justify-center transition-all ${
+              activePanel === 'chakri-ai'
+                ? 'bg-amber-500 text-slate-950 font-bold shadow-lg shadow-amber-500/40 ring-2 ring-amber-300 scale-105'
+                : 'text-amber-300 hover:text-white hover:bg-amber-500/20 bg-amber-500/10 border border-amber-500/30'
+            }`}
+            title="Chakri AI Assistant"
+          >
+            <Sparkles className="w-5 h-5" />
+            <span className="text-[9px] font-extrabold tracking-tight mt-0.5">AI</span>
+          </button>
+
+          {/* Vertical Tab 2: Notes */}
+          <button
+            type="button"
+            onClick={() => togglePanel('notes')}
+            className={`relative w-11 h-12 rounded-2xl flex flex-col items-center justify-center transition-all ${
+              activePanel === 'notes' || activePanel === 'chakri-notes'
+                ? 'bg-amber-500 text-slate-950 font-bold shadow-lg shadow-amber-500/40 ring-2 ring-amber-300 scale-105'
+                : 'text-slate-300 hover:text-white hover:bg-white/10 bg-white/5 border border-white/10'
+            }`}
+            title="Meeting Notes"
+          >
+            <BookOpen className="w-5 h-5" />
+            <span className="text-[9px] font-bold mt-0.5">Notes</span>
+          </button>
+
+          {/* Vertical Tab 3: Chat */}
+          <button
+            type="button"
+            onClick={() => togglePanel('chat')}
+            className={`relative w-11 h-12 rounded-2xl flex flex-col items-center justify-center transition-all ${
+              activePanel === 'chat'
+                ? 'bg-amber-500 text-slate-950 font-bold shadow-lg shadow-amber-500/40 ring-2 ring-amber-300 scale-105'
+                : 'text-slate-300 hover:text-white hover:bg-white/10 bg-white/5 border border-white/10'
+            }`}
+            title="Live Chat"
+          >
+            <MessageSquare className="w-5 h-5" />
+            <span className="text-[9px] font-bold mt-0.5">Chat</span>
+            {unreadCount > 0 && activePanel !== 'chat' && (
+              <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 bg-rose-500 text-white rounded-full text-[9px] font-bold flex items-center justify-center shadow animate-pulse">
+                {unreadCount}
+              </span>
+            )}
+          </button>
+
+          {/* Vertical Tab 4: Participants */}
+          <button
+            type="button"
+            onClick={() => togglePanel('participants')}
+            className={`relative w-11 h-12 rounded-2xl flex flex-col items-center justify-center transition-all ${
+              activePanel === 'participants'
+                ? 'bg-amber-500 text-slate-950 font-bold shadow-lg shadow-amber-500/40 ring-2 ring-amber-300 scale-105'
+                : 'text-slate-300 hover:text-white hover:bg-white/10 bg-white/5 border border-white/10'
+            }`}
+            title="Participants"
+          >
+            <Users className="w-5 h-5" />
+            <span className="text-[9px] font-bold font-mono mt-0.5">{totalParticipants}</span>
+          </button>
+        </nav>
+
         {/* Camera Filters Popover Panel */}
         {activePanel === 'filters' && (
           <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-40 animate-in fade-in zoom-in-95">
             <CameraFilters
               activeFilter={selectedFilter}
+              currentFilter={selectedFilter}
               onSelectFilter={setSelectedFilter}
               onClose={() => setActivePanel(null)}
             />
           </div>
         )}
-
-        {/* Chakri AI Copilot Panel */}
-        <ChakriAI
-          isOpen={activePanel === 'chakri-ai'}
-          onClose={() => setActivePanel(null)}
-          meetingTitle={meetingTitle}
-          roomId={roomId}
-        />
-
-        {/* Chakri Notes (NotebookLM Style) Panel */}
-        <ChakriNotes
-          isOpen={activePanel === 'chakri-notes'}
-          onClose={() => setActivePanel(null)}
-          meetingTitle={meetingTitle}
-        />
-
-        {/* AI Agent Hub Panel (8 Agents) */}
-        <AIAgentHub
-          isOpen={activePanel === 'agent-hub'}
-          onClose={() => setActivePanel(null)}
-        />
-
-        {/* Chat Panel */}
-        {activePanel === 'chat' && (
-          <ChatPanel
-            messages={messages}
-            currentUserId={socket.id}
-            onSendMessage={handleSendMessage}
-            onClose={() => setActivePanel(null)}
-          />
-        )}
-
-        {/* Participants Panel */}
-        {activePanel === 'participants' && (
-          <ParticipantsPanel
-            localUser={userProfile}
-            remotePeers={remotePeers}
-            isLocalMuted={isAudioMuted}
-            isLocalVideoOff={isVideoOff}
-            isLocalHandRaised={isLocalHandRaised}
-            isHost={userProfile.isHost}
-            isMeetingLocked={isMeetingLocked}
-            onMuteParticipant={handleMuteParticipant}
-            onMuteAll={handleMuteAll}
-            onKickParticipant={handleKickParticipant}
-            onToggleLockMeeting={handleToggleLockMeeting}
-            onClose={() => setActivePanel(null)}
-          />
-        )}
-
-        {/* Create Together Tools */}
-        {activePanel === 'whiteboard' && (
-          <SmartBoard roomId={roomId} onClose={() => setActivePanel(null)} />
-        )}
-
-        {activePanel === 'polls' && (
-          <LivePolls
-            roomId={roomId}
-            isHost={userProfile.isHost}
-            onClose={() => setActivePanel(null)}
-          />
-        )}
-
-        {activePanel === 'notes' && (
-          <CollabNotes roomId={roomId} onClose={() => setActivePanel(null)} />
-        )}
-
-        {activePanel === 'agenda' && (
-          <MeetingAgenda onClose={() => setActivePanel(null)} />
-        )}
       </div>
+
+      {/* Global Full-Screen Reaction Emojis Burst */}
+      <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
+        {floatingReactions.map((r) => (
+          <div
+            key={r.id}
+            className="absolute bottom-16 animate-fullscreen-reaction flex flex-col items-center"
+            style={{ left: `${r.xPercent || 50}%` }}
+          >
+            <span className="text-5xl sm:text-6xl drop-shadow-2xl">{r.reaction}</span>
+            {r.userName && (
+              <span className="px-2 py-0.5 bg-black/75 backdrop-blur-md rounded-full text-[10px] text-amber-200 font-bold mt-1 shadow-md">
+                {r.userName}
+              </span>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Explicit Permission Modal for Local Device Meeting Recording */}
+      {recording.showPermissionModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in">
+          <div className="bg-slate-900/95 border border-white/20 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl text-center space-y-4">
+            <div className="w-14 h-14 rounded-2xl bg-amber-500/20 text-amber-400 mx-auto flex items-center justify-center border border-amber-500/40 shadow-lg shadow-amber-500/20">
+              <HardDrive className="w-7 h-7 animate-pulse" />
+            </div>
+            <h3 className="text-xl font-extrabold text-white">Save Recording to Personal Device</h3>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Chakri's Meet will record this session in studio-grade 1440p and save the file <strong>strictly onto your personal device storage</strong>. No audio or video data is ever stored on external cloud servers.
+            </p>
+            <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-[11px] text-amber-200 flex items-center gap-2 text-left">
+              <ShieldCheck className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+              <span>Requires explicit user consent &bull; Direct local download to your machine</span>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => recording.setShowPermissionModal(false)}
+                className="flex-1 py-3 px-4 rounded-xl text-xs font-semibold text-slate-300 bg-white/5 hover:bg-white/10 border border-white/10 transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => recording.grantPermissionAndStart()}
+                className="flex-1 py-3 px-4 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 shadow-lg shadow-indigo-600/30 transition"
+              >
+                Authorize & Save to Device
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Floating Saved Locally Status Toast */}
+      {recording.savedLocallyStatus && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 px-5 py-2.5 bg-emerald-950/95 backdrop-blur-md border border-emerald-500/40 text-emerald-200 text-xs font-bold rounded-full shadow-2xl animate-in fade-in zoom-in-95 flex items-center gap-2">
+          <HardDrive className="w-4 h-4 text-emerald-400" />
+          <span>{recording.savedLocallyStatus}</span>
+        </div>
+      )}
 
       {/* Floating Notification Toast */}
       {notification && (
         <div className="absolute top-20 left-1/2 -translate-x-1/2 z-50 px-4 py-2 bg-slate-900/95 backdrop-blur-md border border-white/20 text-white text-xs font-semibold rounded-full shadow-2xl animate-in fade-in zoom-in-95 flex items-center gap-2">
-          <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+          <Sparkles className="w-3.5 h-3.5 text-amber-400" />
           <span>{notification}</span>
         </div>
       )}
@@ -601,3 +794,4 @@ export default function MeetingRoom() {
     </div>
   );
 }
+

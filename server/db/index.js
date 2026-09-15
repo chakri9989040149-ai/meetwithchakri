@@ -12,7 +12,11 @@ export const inMemoryStore = {
   messages: new Map(), // roomId -> array of messages
   polls: new Map(), // roomId -> array of polls
   notes: new Map(), // roomId -> string
-  history: []
+  history: [],
+  otpCodes: new Map(), // email -> { code, expiresAt, createdAt }
+  scheduledMeetings: new Map(), // scheduleId -> scheduled meeting object
+  emailLogs: [], // Array of dispatched reminder emails
+  users: new Map() // email -> user profile
 };
 
 let pool = null;
@@ -179,6 +183,96 @@ export const dbService = {
 
   async getNotes(roomId) {
     return inMemoryStore.notes.get(roomId) || "";
+  },
+
+  // Authentication & OTP helpers
+  saveOtp(email, code) {
+    const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
+    inMemoryStore.otpCodes.set(email.toLowerCase(), {
+      code,
+      expiresAt,
+      createdAt: new Date().toISOString()
+    });
+    return { email, code, expiresAt };
+  },
+
+  verifyOtp(email, code) {
+    const record = inMemoryStore.otpCodes.get(email.toLowerCase());
+    if (!record) return { valid: false, reason: 'No OTP requested for this email.' };
+    if (Date.now() > record.expiresAt) {
+      inMemoryStore.otpCodes.delete(email.toLowerCase());
+      return { valid: false, reason: 'OTP has expired. Please request a new code.' };
+    }
+    if (record.code !== code.trim()) {
+      return { valid: false, reason: 'Invalid 4-digit verification code.' };
+    }
+    // Delete OTP once used
+    inMemoryStore.otpCodes.delete(email.toLowerCase());
+    
+    // Register or retrieve user profile
+    let user = inMemoryStore.users.get(email.toLowerCase());
+    if (!user) {
+      user = {
+        email: email.toLowerCase(),
+        name: email.split('@')[0],
+        avatarBg: 'from-amber-500 to-orange-600',
+        joinedAt: new Date().toISOString()
+      };
+      inMemoryStore.users.set(email.toLowerCase(), user);
+    }
+    return { valid: true, user };
+  },
+
+  // Scheduled meeting helpers
+  createScheduledMeeting(data) {
+    const scheduleId = data.scheduleId || 'sch-' + Math.random().toString(36).substring(2, 9);
+    const meeting = {
+      scheduleId,
+      roomId: data.roomId,
+      title: data.title || "Chakri's Scheduled Discussion",
+      hostName: data.hostName || 'Host',
+      hostEmail: data.hostEmail ? data.hostEmail.toLowerCase() : '',
+      participantEmails: Array.isArray(data.participantEmails) ? data.participantEmails : [],
+      scheduledTime: data.scheduledTime, // ISO string or timestamp
+      agenda: data.agenda || '',
+      createdAt: new Date().toISOString(),
+      status: 'scheduled',
+      remindersSentCount: 0,
+      lastReminderSentAt: null
+    };
+
+    inMemoryStore.scheduledMeetings.set(scheduleId, meeting);
+
+    // Also register meeting room in dbService so roomId is instantly valid when joined
+    this.createMeeting(data.roomId, meeting.title, meeting.hostName, null);
+
+    return meeting;
+  },
+
+  getScheduledMeetings(userEmail) {
+    const list = Array.from(inMemoryStore.scheduledMeetings.values());
+    if (!userEmail) return list;
+    const cleanEmail = userEmail.toLowerCase();
+    return list.filter(m => 
+      m.hostEmail === cleanEmail || 
+      m.participantEmails.some(e => e.toLowerCase() === cleanEmail)
+    );
+  },
+
+  recordEmailReminder(reminderData) {
+    const record = {
+      id: 'rem-' + Math.random().toString(36).substring(2, 9),
+      ...reminderData,
+      sentAt: new Date().toISOString()
+    };
+    inMemoryStore.emailLogs.push(record);
+
+    if (reminderData.scheduleId && inMemoryStore.scheduledMeetings.has(reminderData.scheduleId)) {
+      const sch = inMemoryStore.scheduledMeetings.get(reminderData.scheduleId);
+      sch.remindersSentCount = (sch.remindersSentCount || 0) + 1;
+      sch.lastReminderSentAt = record.sentAt;
+    }
+    return record;
   }
 };
 

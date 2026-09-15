@@ -34,8 +34,9 @@ export default function JoinPreview({
         const constraints = {
           video: {
             deviceId: selectedVideoDevice ? { exact: selectedVideoDevice } : undefined,
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
+            width: { ideal: 2560, min: 1280 },
+            height: { ideal: 1440, min: 720 },
+            frameRate: { ideal: 30, max: 60 },
             facingMode: 'user'
           },
           audio: {
@@ -157,6 +158,12 @@ export default function JoinPreview({
                   videoEnabled && !permissionError ? 'opacity-100' : 'opacity-0'
                 }`}
               />
+
+              {/* HD 1440p Resolution Badge */}
+              <div className="absolute top-4 left-4 flex items-center gap-1.5 px-2.5 py-1 bg-black/60 backdrop-blur-md rounded-full text-amber-300 border border-amber-400/30 text-[11px] font-bold font-mono">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span>HD 1440p</span>
+              </div>
 
               {/* Avatar placeholder when video is off or permission denied */}
               {(!videoEnabled || permissionError) && (

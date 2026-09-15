@@ -155,8 +155,9 @@ export function useWebRTC(roomId, currentUser, initialMediaSettings = { audio: t
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: {
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
+            width: { ideal: 2560, min: 1280 },
+            height: { ideal: 1440, min: 720 },
+            frameRate: { ideal: 30, max: 60 },
             facingMode: 'user'
           },
           audio: {

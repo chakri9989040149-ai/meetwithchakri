@@ -61,12 +61,16 @@ export default function VideoTile({
     .toUpperCase()
     .slice(0, 2);
 
+  const normalizedFilterClass = filterClass
+    ? (filterClass.startsWith('filter-') ? filterClass : `filter-${filterClass}`)
+    : '';
+
   return (
     <div
       ref={containerRef}
       className={`relative w-full h-full min-h-[220px] rounded-2xl overflow-hidden bg-slate-900 border-2 transition-all duration-200 group flex items-center justify-center ${
-        isSpeaking ? 'border-brand-500 shadow-lg shadow-brand-500/30 ring-2 ring-brand-400/50' : 'border-slate-800/80 shadow-md'
-      } ${isPinned ? 'ring-2 ring-brand-400' : ''}`}
+        isSpeaking ? 'border-amber-500 shadow-lg shadow-amber-500/30 ring-2 ring-amber-400/50' : 'border-slate-800/80 shadow-md'
+      } ${isPinned ? 'ring-2 ring-amber-400' : ''}`}
     >
       {/* Video element */}
       <video
@@ -76,15 +80,28 @@ export default function VideoTile({
         muted={isLocal} // Never play local audio back to prevent acoustic feedback
         className={`w-full h-full object-cover transition-opacity duration-300 ${
           isLocal && !isScreenShare ? 'video-mirrored' : ''
-        } ${isLocal && filterClass ? filterClass : ''} ${isVideoOff ? 'opacity-0' : 'opacity-100'}`}
+        } ${isLocal && normalizedFilterClass ? normalizedFilterClass : ''} ${isVideoOff ? 'opacity-0' : 'opacity-100'}`}
       />
+
+      {/* Active Filter Badge */}
+      {isLocal && normalizedFilterClass && normalizedFilterClass !== 'filter-normal' && (
+        <div className="absolute top-3 left-3 z-20 flex items-center gap-1 px-2 py-0.5 bg-amber-500/90 backdrop-blur-md rounded-lg text-[10px] text-white font-bold uppercase tracking-wider shadow-md">
+          <span>✨ {normalizedFilterClass.replace('filter-', '')}</span>
+        </div>
+      )}
+
+      {/* 1440p HD Video Stream Badge */}
+      <div className="absolute top-3 right-12 z-20 hidden group-hover:flex items-center gap-1 px-2 py-0.5 bg-black/70 backdrop-blur-md rounded-lg text-[10px] text-amber-300 font-mono font-bold border border-amber-400/30">
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+        <span>1440p</span>
+      </div>
 
       {/* Video Off Avatar Placeholder */}
       {isVideoOff && (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 select-none">
           <div
-            className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-tr from-brand-600 to-sky-400 flex items-center justify-center text-white text-2xl sm:text-3xl font-display font-bold shadow-xl transition-transform ${
-              isSpeaking ? 'scale-110 shadow-brand-500/50' : ''
+            className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center text-white text-2xl sm:text-3xl font-display font-bold shadow-xl transition-transform ${
+              isSpeaking ? 'scale-110 shadow-amber-500/50' : ''
             }`}
           >
             {initials}
@@ -94,12 +111,12 @@ export default function VideoTile({
       )}
 
       {/* Floating Reaction Emojis overlay */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden flex items-end justify-center pb-12">
+      <div className="absolute inset-0 pointer-events-none overflow-hidden flex items-end justify-center pb-12 z-30">
         {reactions.map((r, i) => (
           <span
             key={`${r.id || i}-${r.reaction}`}
             className="absolute text-4xl sm:text-5xl animate-floating-reaction"
-            style={{ left: `${40 + (i % 3) * 15}%` }}
+            style={{ left: `${35 + ((i * 17) % 35)}%` }}
           >
             {r.reaction}
           </span>
@@ -108,7 +125,7 @@ export default function VideoTile({
 
       {/* Top Left: Hand Raised Badge */}
       {isHandRaised && (
-        <div className="absolute top-3 left-3 flex items-center gap-1.5 px-3 py-1 bg-amber-500 text-white rounded-full text-xs font-bold shadow-lg animate-bounce">
+        <div className="absolute top-3 left-3 z-20 flex items-center gap-1.5 px-3 py-1 bg-amber-500 text-white rounded-full text-xs font-bold shadow-lg animate-bounce">
           <Hand className="w-3.5 h-3.5" />
           <span>Hand Raised</span>
         </div>
